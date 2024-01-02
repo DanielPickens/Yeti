@@ -185,8 +185,3 @@ There are many ways to contribute to the project:
 -   Contributing code or documentation to the project by submitting a GitHub pull request. 
 
 
-
-
-## Licence
-
-[Elastic License 2.0 (ELv2)](https://github.com/DanielPickens/Yeti/blob/main/LICENSE.md)
