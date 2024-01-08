@@ -137,6 +137,8 @@ func NewRouter() (*fizz.Fizz, error) {
 	// Initialize the information of
 	// the API that will be served with
 	// the specification.
+
+	
 	infos := &openapi.Info{
 		Title:       "yeti api server",
 		Description: `This is yeti api server.`,
