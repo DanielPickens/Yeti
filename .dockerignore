@@ -1,0 +1,7 @@
+.git
+.idea
+README.md
+Makefile
+yeti-config.sample.yaml
+Dockerfile
+dashboard/node_modules

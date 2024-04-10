@@ -1,0 +1,16 @@
+apiVersion: v2
+name: yeti
+description: Yeti Helm chart
+dependencies:
+  - name: common
+    repository: https://charts.bitnami.com/bitnami
+    tags:
+      - bitnami-common
+    version: 1.x.x
+version: "1.0.0"
+appVersion: "1.0.0"
+home: https://github.com/danielpickens/yeti
+type: application
+maintainers:
+  - name: Dan Pickens
+    email: danielpickens@gmail.com

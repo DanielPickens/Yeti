@@ -1,0 +1,372 @@
+import React, { useState } from 'react'
+import { useModel, useModelLoading } from '@/hooks/useModel'
+import { Skeleton } from 'baseui/skeleton'
+import { createUseStyles } from 'react-jss'
+import useTranslation from '@/hooks/useTranslation'
+import { listModelmls, listModelDeployments, updateModel } from '@/services/model'
+import LabelList from '@/components/LabelList'
+import Card from '@/components/Card'
+import Time from '@/components/Time'
+import User from '@/components/User'
+import classNames from 'classnames'
+import prettyBytes from 'pretty-bytes'
+import { useParams } from 'react-router-dom'
+import { useFetchModel } from '@/hooks/useFetchModel'
+import { resourceIconMapping } from '@/consts'
+import { useQuery } from 'react-query'
+import { IListQuerySchema } from '@/schemas/list'
+import qs from 'qs'
+import mlList from '@/components/mlList'
+import { AiOutlineCloudDownload, AiOutlineTags } from 'react-icons/ai'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import { TiClipboard } from 'react-icons/ti'
+import { Button } from 'baseui/button'
+import CopyToClipboard from 'react-copy-to-clipboard'
+import { docco, dark } from 'react-syntax-highlighter/dist/esm/styles/hljs'
+import { Notification } from 'baseui/notification'
+import List from '@/components/List'
+import { IDeploymentSchema } from '@/schemas/deployment'
+import DeploymentStatusTag from '@/components/DeploymentStatusTag'
+import { useStyletron } from 'baseui'
+import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
+import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
+import Link from '@/components/Link'
+
+const useStyles = createUseStyles({
+    left: {
+        flexGrow: 1,
+        flexShrink: 0,
+    },
+    right: {
+        flexGrow: 1,
+        flexShrink: 0,
+    },
+    itemsWrapper: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+    },
+    item: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+    },
+    deploymentItem: (props: IThemedStyleProps) => ({
+        'padding': '6px 2px',
+        'cursor': 'pointer',
+        'display': 'flex',
+        'alignItems': 'center',
+        'gap': 12,
+        'borderBottom': `1px solid ${props.theme.borders.border100.borderColor}`,
+        '&:hover': {
+            backgroundColor: props.theme.colors.backgroundSecondary,
+        },
+    }),
+    key: {
+        'flexShrink': 0,
+        'display': 'flex',
+        'alignItems': 'center',
+        'fontWeight': 500,
+        'gap': 6,
+        '&:after': {
+            content: '":"',
+        },
+    },
+    value: {
+        width: '100%',
+    },
+    foldedItem: {
+        'alignItems': 'flex-start !important',
+        '& $key': {
+            cursor: 'pointer',
+        },
+    },
+    closedItem: {
+        '& > $key': {
+            '&:before': {
+                content: '"▲"',
+            },
+        },
+    },
+    openedItem: {
+        '& > $key': {
+            '&:before': {
+                content: '"▼"',
+            },
+        },
+    },
+})
+
+export default function ModelOverview() {
+    const themeType = useCurrentThemeType()
+    const [, theme] = useStyletron()
+    const styles = useStyles({ theme, themeType })
+    const { modelRepositoryName, modelVersion } = useParams<{ modelRepositoryName: string; modelVersion: string }>()
+    const modelInfo = useFetchModel(modelRepositoryName, modelVersion)
+    const { model } = useModel()
+    const { modelLoading } = useModelLoading()
+    const [t] = useTranslation()
+    const [showContext, setShowContext] = useState(false)
+    const [showMetaData, setShowMetaData] = useState(false)
+    const [mlsQuery, setmlsQuery] = useState<IListQuerySchema>({
+        start: 0,
+        count: 10,
+    })
+    const mlsQueryKey = `model:${modelRepositoryName}/${modelVersion}:mls:${qs.stringify(mlsQuery)}`
+    const mlsInfo = useQuery(mlsQueryKey, () => listModelmls(modelRepositoryName, modelVersion, mlsQuery))
+    const [deploymentsQuery, setDeploymentsQuery] = useState<IListQuerySchema>({
+        start: 0,
+        count: 10,
+    })
+    const deploymentsQueryKey = `model:${modelRepositoryName}/${modelVersion}:deployments:${qs.stringify(
+        deploymentsQuery
+    )}`
+    const deploymentsInfo = useQuery(deploymentsQueryKey, () =>
+        listModelDeployments(modelRepositoryName, modelVersion, deploymentsQuery)
+    )
+    const downloadCommand = `mlml models pull ${modelRepositoryName}:${modelVersion}`
+    const [copyNotification, setCopyNotification] = useState<string>()
+    const highlightTheme = themeType === 'dark' ? dark : docco
+
+    if (modelLoading || !model) {
+        return <Skeleton rows={3} animation />
+    }
+
+    return (
+        <div
+            style={{
+                display: 'grid',
+                gap: 20,
+                gridTemplateColumns: '1fr 1fr',
+            }}
+        >
+            <div className={styles.left}>
+                <Card>
+                    <div className={styles.itemsWrapper}>
+                        <div className={styles.item}>
+                            <div className={styles.key}>{t('created_at')}</div>
+                            <div className={styles.value}>
+                                <Time time={model.created_at} />
+                            </div>
+                        </div>
+                        <div className={styles.item}>
+                            <div className={styles.key}>{t('user')}</div>
+                            <div className={styles.value}>{model.creator ? <User user={model.creator} /> : '-'}</div>
+                        </div>
+                        <div className={styles.item}>
+                            <div className={styles.key}>{t('module')}</div>
+                            <div className={styles.value}>{model.manifest.module}</div>
+                        </div>
+                        <div className={styles.item}>
+                            <div className={styles.key}>mlML Version</div>
+                            <div className={styles.value}>{model.manifest.mlml_version}</div>
+                        </div>
+                        <div
+                            className={classNames({
+                                [styles.item]: true,
+                                [styles.foldedItem]: true,
+                                [styles.closedItem]: !showContext,
+                                [styles.openedItem]: showContext,
+                            })}
+                        >
+                            <div
+                                className={styles.key}
+                                onClick={() => setShowContext((v) => !v)}
+                                role='button'
+                                tabIndex={0}
+                            >
+                                {t('context')}
+                            </div>
+                            <div className={styles.value}>
+                                {showContext ? (
+                                    <SyntaxHighlighter language='json' style={highlightTheme}>
+                                        {JSON.stringify(model.manifest.context, null, 2)}
+                                    </SyntaxHighlighter>
+                                ) : (
+                                    '...'
+                                )}
+                            </div>
+                        </div>
+                        <div className={styles.item}>
+                            <div className={styles.key}>Size</div>
+                            <div className={styles.value}>{prettyBytes(model.manifest.size_bytes)}</div>
+                        </div>
+                        <div
+                            className={classNames({
+                                [styles.item]: true,
+                                [styles.foldedItem]: true,
+                                [styles.closedItem]: !showMetaData,
+                                [styles.openedItem]: showMetaData,
+                            })}
+                        >
+                            <div
+                                className={styles.key}
+                                role='button'
+                                tabIndex={0}
+                                onClick={() => setShowMetaData((v) => !v)}
+                            >
+                                Metadata
+                            </div>
+                            <div className={styles.value}>
+                                {showMetaData ? (
+                                    <SyntaxHighlighter language='json' style={highlightTheme}>
+                                        {JSON.stringify(model.manifest.metadata, null, 2)}
+                                    </SyntaxHighlighter>
+                                ) : (
+                                    '...'
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </Card>
+            </div>
+            <div className={styles.right}>
+                <Card title={t('download')} titleIcon={AiOutlineCloudDownload}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 10,
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                flexGrow: 1,
+                            }}
+                        >
+                            <SyntaxHighlighter
+                                language='bash'
+                                style={highlightTheme}
+                                customStyle={{
+                                    margin: 0,
+                                }}
+                            >
+                                {downloadCommand}
+                            </SyntaxHighlighter>
+                            {copyNotification && (
+                                <Notification
+                                    closeable
+                                    onClose={() => setCopyNotification(undefined)}
+                                    kind='positive'
+                                    overrides={{
+                                        Body: {
+                                            style: {
+                                                margin: 0,
+                                                width: '100%',
+                                                boxSizing: 'border-box',
+                                                padding: '8px !important',
+                                                borderRadius: '3px !important',
+                                                fontSize: '13px !important',
+                                            },
+                                        },
+                                    }}
+                                >
+                                    {copyNotification}
+                                </Notification>
+                            )}
+                        </div>
+                        <div style={{ flexShrink: 0 }}>
+                            <CopyToClipboard
+                                text={downloadCommand}
+                                onCopy={() => {
+                                    setCopyNotification(t('copied to clipboard'))
+                                }}
+                            >
+                                <Button startEnhancer={<TiClipboard size={14} />} kind='secondary' size='compact'>
+                                    {t('copy')}
+                                </Button>
+                            </CopyToClipboard>
+                        </div>
+                    </div>
+                </Card>
+                <Card title={t('labels')} titleIcon={AiOutlineTags}>
+                    <LabelList
+                        value={model.labels}
+                        onChange={async (labels) => {
+                            await updateModel(model.repository.name, model.version, {
+                                ...model,
+                                labels,
+                            })
+                            await modelInfo.refetch()
+                        }}
+                    />
+                </Card>
+                <Card title={t('mls')} titleIcon={resourceIconMapping.ml}>
+                    <mlList
+                        isLoading={mlsInfo.isLoading}
+                        mls={mlsInfo.data?.items ?? []}
+                        queryKey={mlsQueryKey}
+                        paginationProps={{
+                            start: mlsQuery.start,
+                            count: mlsQuery.count,
+                            total: mlsInfo.data?.total ?? 0,
+                            onPageChange: (page) => {
+                                setmlsQuery({
+                                    ...mlsQuery,
+                                    start: (page - 1) * mlsQuery.count,
+                                })
+                            },
+                        }}
+                    />
+                </Card>
+                <Card title={t('deployments')} titleIcon={resourceIconMapping.deployment}>
+                    <List
+                        isLoading={deploymentsInfo.isLoading}
+                        items={deploymentsInfo.data?.items ?? []}
+                        paginationProps={{
+                            start: deploymentsQuery.start,
+                            count: deploymentsQuery.count,
+                            total: deploymentsInfo.data?.total ?? 0,
+                            onPageChange: (page) => {
+                                setDeploymentsQuery({
+                                    ...deploymentsQuery,
+                                    start: (page - 1) * deploymentsQuery.count,
+                                })
+                            },
+                        }}
+                        onRenderItem={(item: IDeploymentSchema) => {
+                            return (
+                                <div
+                                    className={styles.deploymentItem}
+                                    onClick={(e: React.MouseEvent) => {
+                                        e.currentTarget.querySelector('a')?.click()
+                                    }}
+                                    role='button'
+                                    tabIndex={0}
+                                >
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            width: '100%',
+                                            gap: 10,
+                                        }}
+                                    >
+                                        <DeploymentStatusTag size='small' status={item.status} />
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                flexGrow: 1,
+                                            }}
+                                        >
+                                            <Link
+                                                href={`/clusters/${item.cluster?.name}/namespaces/${item.kube_namespace}/deployments/${item.name}`}
+                                            >
+                                                {item.name}
+                                            </Link>
+                                            <Time time={item.created_at} />
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        }}
+                    />
+                </Card>
+            </div>
+        </div>
+    )
+}
