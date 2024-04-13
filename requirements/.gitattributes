@@ -1,2 +1,0 @@
-docs/assets/endpoint-toggle.png filter=lfs diff=lfs merge=lfs -text
-docs/source/_static/** filter=lfs diff=lfs merge=lfs -text
