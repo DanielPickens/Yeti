@@ -12,7 +12,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func ExampleNew() {
+func New() {
 	var outputBuffer bytes.Buffer
 
 	opt := &Options{
@@ -32,7 +32,7 @@ func ExampleNew() {
 	_ = helmClient
 }
 
-func ExampleNewClientFromRestConf() {
+func NewClientFromRestConf() {
 	opt := &RestConfClientOptions{
 		Options: &Options{
 			Namespace:        "default", // Change this to the namespace you wish the client to operate in.
@@ -54,7 +54,7 @@ func ExampleNewClientFromRestConf() {
 	_ = helmClient
 }
 
-func ExampleNewClientFromKubeConf() {
+func NewClientFromKubeConf() {
 	opt := &KubeConfClientOptions{
 		Options: &Options{
 			Namespace:        "default", // Change this to the namespace you wish to install the chart in.
@@ -77,7 +77,7 @@ func ExampleNewClientFromKubeConf() {
 	_ = helmClient
 }
 
-func ExampleHelmClient_AddOrUpdateChartRepo_public() {
+func HelmClient_AddOrUpdateChartRepo_public() {
 	// Define a public chart repository.
 	chartRepo := repo.Entry{
 		Name: "stable",
@@ -90,7 +90,7 @@ func ExampleHelmClient_AddOrUpdateChartRepo_public() {
 	}
 }
 
-func ExampleHelmClient_AddOrUpdateChartRepo_private() {
+func HelmClient_AddOrUpdateChartRepo_private() {
 	// Define a private chart repository
 	chartRepo := repo.Entry{
 		Name:     "stable",
@@ -107,7 +107,7 @@ func ExampleHelmClient_AddOrUpdateChartRepo_private() {
 	}
 }
 
-func ExampleHelmClient_InstallOrUpgradeChart() {
+func HelmClient_InstallOrUpgradeChart() {
 	// Define the chart to be installed
 	chartSpec := ChartSpec{
 		ReleaseName: "etcd-operator",
@@ -124,7 +124,7 @@ func ExampleHelmClient_InstallOrUpgradeChart() {
 	}
 }
 
-func ExampleHelmClient_InstallOrUpgradeChart_useChartDirectory() {
+func HelmClient_InstallOrUpgradeChart_useChartDirectory() {
 	// Use an unpacked chart directory.
 	chartSpec := ChartSpec{
 		ReleaseName: "etcd-operator",
@@ -139,7 +139,7 @@ func ExampleHelmClient_InstallOrUpgradeChart_useChartDirectory() {
 	}
 }
 
-func ExampleHelmClient_InstallOrUpgradeChart_useLocalChartArchive() {
+func HelmClient_InstallOrUpgradeChart_useLocalChartArchive() {
 	// Use an archived chart directory.
 	chartSpec := ChartSpec{
 		ReleaseName: "etcd-operator",
@@ -154,7 +154,7 @@ func ExampleHelmClient_InstallOrUpgradeChart_useLocalChartArchive() {
 	}
 }
 
-func ExampleHelmClient_InstallOrUpgradeChart_useURL() {
+func HelmClient_InstallOrUpgradeChart_useURL() {
 	// Use an archived chart directory via URL.
 	chartSpec := ChartSpec{
 		ReleaseName: "etcd-operator",
@@ -169,7 +169,7 @@ func ExampleHelmClient_InstallOrUpgradeChart_useURL() {
 	}
 }
 
-func ExampleHelmClient_InstallOrUpgradeChart_useDefaultRollBackStrategy() {
+func HelmClient_InstallOrUpgradeChart_useDefaultRollBackStrategy() {
 	// Define the chart to be installed
 	chartSpec := ChartSpec{
 		ReleaseName: "etcd-operator",
@@ -205,7 +205,7 @@ func (c customRollBack) RollbackRelease(spec *ChartSpec) error {
 	return client.Run(spec.ReleaseName)
 }
 
-func ExampleHelmClient_InstallOrUpgradeChart_useCustomRollBackStrategy() {
+func HelmClient_InstallOrUpgradeChart_useCustomRollBackStrategy() {
 	// Define the chart to be installed
 	chartSpec := ChartSpec{
 		ReleaseName: "etcd-operator",
@@ -229,7 +229,7 @@ func ExampleHelmClient_InstallOrUpgradeChart_useCustomRollBackStrategy() {
 	}
 }
 
-func ExampleHelmClient_LintChart() {
+func HelmClient_LintChart() {
 	// Define a chart with custom values to be tested.
 	chartSpec := ChartSpec{
 		ReleaseName: "etcd-operator",
@@ -247,7 +247,7 @@ func ExampleHelmClient_LintChart() {
 	}
 }
 
-func ExampleHelmClient_TemplateChart() {
+func HelmClient_TemplateChart() {
 	chartSpec := ChartSpec{
 		ReleaseName: "etcd-operator",
 		ChartName:   "stable/etcd-operator",
@@ -276,14 +276,14 @@ func ExampleHelmClient_TemplateChart() {
 	}
 }
 
-func ExampleHelmClient_UpdateChartRepos() {
+func HelmClient_UpdateChartRepos() {
 	// Update the list of chart repositories.
 	if err := helmClient.UpdateChartRepos(); err != nil {
 		panic(err)
 	}
 }
 
-func ExampleHelmClient_UninstallRelease() {
+func HelmClient_UninstallRelease() {
 	// Define the released chart to be installed.
 	chartSpec := ChartSpec{
 		ReleaseName: "etcd-operator",
@@ -301,35 +301,35 @@ func ExampleHelmClient_UninstallRelease() {
 	}
 }
 
-func ExampleHelmClient_UninstallReleaseByName() {
+func HelmClient_UninstallReleaseByName() {
 	// Uninstall a release by name.
 	if err := helmClient.UninstallReleaseByName("etcd-operator"); err != nil {
 		panic(err)
 	}
 }
 
-func ExampleHelmClient_ListDeployedReleases() {
+func HelmClient_ListDeployedReleases() {
 	// List all deployed releases.
 	if _, err := helmClient.ListDeployedReleases(); err != nil {
 		panic(err)
 	}
 }
 
-func ExampleHelmClient_GetReleaseValues() {
+func HelmClient_GetReleaseValues() {
 	// Get the values of a deployed release.
 	if _, err := helmClient.GetReleaseValues("etcd-operator", true); err != nil {
 		panic(err)
 	}
 }
 
-func ExampleHelmClient_GetRelease() {
+func HelmClient_GetRelease() {
 	// Get specific details of a deployed release.
 	if _, err := helmClient.GetRelease("etcd-operator"); err != nil {
 		panic(err)
 	}
 }
 
-func ExampleHelmClient_RollbackRelease() {
+func HelmClient_RollbackRelease() {
 	// Define the released chart to be installed
 	chartSpec := ChartSpec{
 		ReleaseName: "etcd-operator",
