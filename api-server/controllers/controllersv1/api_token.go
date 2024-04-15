@@ -7,19 +7,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 
-	"github.com/danielpikens/yeti-schemas/modelschemas"
-	"github.com/danielpikens/yeti-schemas/schemasv1"
-	"github.com/danielpikens/yeti/api-server/models"
-	"github.com/danielpikens/yeti/api-server/services"
-	"github.com/danielpikens/yeti/api-server/transformers/transformersv1"
-	"github.com/danielpikens/yeti/common/consts"
-	"github.com/danielpikens/yeti/common/utils"
+	"github.com/danielpickens/yeti-schemas/modelschemas"
+	"github.com/danielpickens/yeti-schemas/schemasv1"
+	"github.com/danielpickens/yeti/api-server/models"
+	"github.com/danielpickens/yeti/api-server/services"
+	"github.com/danielpickens/yeti/api-server/transformers/transformersv1"
+	"github.com/danielpickens/yeti/common/consts"
+	"github.com/danielpickens/yeti/common/utils"
 )
 
 type apiTokenController struct {
 	// nolint: unused
 	baseController
 }
+
 // Create apitokencontroller struct base conotroller, add gettokenauth, apitokenupdate context scopes and model api tokens context
 var ApiTokenController = apiTokenController{}
 

@@ -23,15 +23,22 @@ import (
 	"github.com/danielpickens/yeti/common/utils"
 )
 
+import (
+	"github.com/danielpickens/yeti/api-server/controllers"
+)
+
 type clusterController struct {
-	// nolint: unused
-	baseController
+	controllers.BaseController
 }
 
 var ClusterController = clusterController{}
 
-type GetClusterSchema struct {
-	GetOrganizationSchema
+import (
+	"github.com/danielpickens/yeti/api-server/controllers"
+)
+
+type GetOrganizationSchema struct {
+	controllers.GetOrganizationSchema
 	ClusterName string `path:"clusterName"`
 }
 
